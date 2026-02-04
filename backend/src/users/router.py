@@ -6,7 +6,8 @@ from src.database import get_db
 from src.users.models import User
 from src.users.service import user_service
 from src.users.schemas import UserResponseSchema, UserCreateSchema, UserBaseSchema, UserPatchSchema
-from src.users.dependencies import is_user_id_valid, PaginationParams
+from src.users.dependencies import is_user_id_valid
+from src.pagination import PaginationParams, PaginatedResponse
 
 router = APIRouter()
 
@@ -15,11 +16,13 @@ router = APIRouter()
     "/users",
     tags=["Users"],
     summary="Get all users",
-    response_model=list[UserResponseSchema],
+    response_model=PaginatedResponse[UserResponseSchema],
     status_code=200)
 async def get_users(db: AsyncSession = Depends(get_db),
                     pagination: PaginationParams = Depends()):
-    return await user_service.get_users(db, pagination.skip, pagination.limit)
+    users, total = await user_service.get_users(db, pagination)
+
+    return PaginatedResponse.create(users, total, pagination)
 
 
 @router.get(

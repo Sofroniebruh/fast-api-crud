@@ -1,11 +1,12 @@
 import hashlib
 from collections.abc import Sequence
-from typing import Optional
+from typing import Optional, Tuple
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.pagination import PaginationParams
 from src.users.models import User
 from src.users.schemas import UserCreateSchema, UserBaseSchema, UserPatchSchema
 
@@ -38,12 +39,20 @@ class UserService:
 
         return result.scalar_one_or_none()
 
-    async def get_users(self, db: AsyncSession, skip: int = 0, limit: int = 100) -> Sequence[User]:
-        result = await db.execute(
-            select(User).offset(skip).limit(limit)
+    async def get_users(self, db: AsyncSession, pagination: PaginationParams) -> Tuple[Sequence[User], int]:
+        count_result = await db.execute(select(func.count(User.id)))
+        total = count_result.scalar()
+
+        users_result = await db.execute(
+            select(User)
+            .order_by(User.created_at)
+            .offset(pagination.skip)
+            .limit(pagination.limit)
         )
 
-        return result.scalars().all()
+        users = users_result.scalars().all()
+
+        return list(users), total
 
     async def patch_user(self, db: AsyncSession, user: User, update_data: UserPatchSchema) -> User:
         user_data = update_data.model_dump(exclude_unset=True)
