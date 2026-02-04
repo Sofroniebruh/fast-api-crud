@@ -6,7 +6,7 @@ from pydantic import BaseModel, EmailStr, ConfigDict, Field
 # Useful to prevent circular dep issue. TYPE_CHECKING is always false at runtime, so no error.
 # Meanwhile, IDE pretends it's true.
 if TYPE_CHECKING:
-    from src.tickets.schemas import TicketResponseSchema
+    from src.schemas import TicketResponseSchema
 
 
 class UserBaseSchema(BaseModel):
@@ -28,9 +28,10 @@ class UserResponseSchema(UserBaseSchema):
     username: str
     email: EmailStr
     created_at: datetime
-    # Forward reference (usage of ""), means Python doesn't evaluate it immediately, just stores it as a string.
-    # Pydantic resolves it later using model_rebuild().
-    tickets: List["TicketResponseSchema"]
+    # Forward reference using quotes prevents circular import issues
+    # The string "TicketResponseSchema" is resolved when model_rebuild() is called
+    # Made Optional to handle cases where tickets aren't loaded (lazy="noload")
+    tickets: Optional[List["TicketResponseSchema"]] = None
 
     # Basically allows to read from DB ORM model,
     # because naturally pydantic schemas are expecting dicts, not ORM objects
@@ -42,3 +43,6 @@ class UserListResponseSchema(BaseModel):
     total: int
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# Model rebuild moved to avoid import issues - will be handled at startup

@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import get_db
-from service import user_service
+from src.users.service import user_service
 from src.users.models import User
 
 
@@ -14,7 +14,7 @@ class PaginationParams(BaseModel):
 
     @property
     def skip(self) -> int:
-        return (self.page - 1) * self.limit
+        return (self.page - 1) * self.page_size
 
     @property
     def limit(self):

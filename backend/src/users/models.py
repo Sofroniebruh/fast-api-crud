@@ -24,4 +24,7 @@ class User(Base):
         nullable=False
     )
 
-    tickets = relationship("Ticket", back_populates="user")
+    # lazy="noload" prevents automatic loading of tickets to avoid async/sync conflicts
+    # When Pydantic tries to serialize User objects, it won't trigger async DB calls
+    # Load tickets explicitly in service methods when needed using async queries
+    tickets = relationship("Ticket", back_populates="user", lazy="noload")
