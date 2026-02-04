@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, EmailStr, ConfigDict, Field
 
 # Useful to prevent circular dep issue. TYPE_CHECKING is always false at runtime, so no error.
 # Meanwhile, IDE pretends it's true.
@@ -12,6 +12,11 @@ if TYPE_CHECKING:
 class UserBaseSchema(BaseModel):
     username: str
     email: EmailStr
+
+
+class UserPatchSchema(BaseModel):
+    username: Optional[str] = Field(None, min_length=3)
+    email: Optional[EmailStr]
 
 
 class UserCreateSchema(UserBaseSchema):

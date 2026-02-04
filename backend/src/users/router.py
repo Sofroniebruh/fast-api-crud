@@ -1,8 +1,12 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.param_functions import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database import DB_Session
-from src.users import service
-from src.users.schemas import UserResponseSchema, UserCreateSchema
+from src.database import get_db
+from src.users.models import User
+from src.users.service import user_service
+from src.users.schemas import UserResponseSchema, UserCreateSchema, UserBaseSchema, UserPatchSchema
+from src.users.dependencies import is_user_id_valid
 
 router = APIRouter()
 
@@ -13,8 +17,8 @@ router = APIRouter()
     summary="Get all users",
     response_model=list[UserResponseSchema],
     status_code=200)
-async def get_users(db: DB_Session, skip: int = 0, limit: int = 100):
-    return await service.get_users(db, skip, limit)
+async def get_users(db: AsyncSession = Depends(get_db), skip: int = 0, limit: int = 100):
+    return await user_service.get_users(db, skip, limit)
 
 
 @router.get(
@@ -23,12 +27,8 @@ async def get_users(db: DB_Session, skip: int = 0, limit: int = 100):
     summary="Get user by id",
     response_model=UserResponseSchema,
     status_code=200)
-async def get_user_by_id(user_id: int, db: DB_Session):
-    user = await service.get_user_by_id(db, user_id)
-
-    if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-
+async def get_user_by_id(
+        user: dict = Depends(is_user_id_valid)):
     return user
 
 
@@ -40,10 +40,50 @@ async def get_user_by_id(user_id: int, db: DB_Session):
     status_code=201)
 async def user_create(
         user: UserCreateSchema,
-        db: DB_Session):
-    db_user = await service.get_user_by_email(db, email=user.email)
+        db: AsyncSession = Depends(get_db)):
+    db_user = await user_service.get_user_by_email(db, email=user.email)
 
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    return await service.create_user(db=db, user=user)
+    return await user_service.create_user(db=db, user=user)
+
+
+@router.put(
+    "/users/{user_id}",
+    tags=["Users"],
+    summary="Update the user",
+    response_model=UserResponseSchema,
+    status_code=200)
+async def user_update(
+        update_data: UserBaseSchema,
+        user: User = Depends(is_user_id_valid),
+        db: AsyncSession = Depends(get_db),
+):
+    return await user_service.update_user(db, user=user, update_data=update_data)
+
+
+@router.patch(
+    "/users/{user_id}",
+    tags=["Users"],
+    summary="PATCH the user",
+    response_model=UserResponseSchema,
+    status_code=200)
+async def user_update(
+        update_data: UserPatchSchema,
+        user: User = Depends(is_user_id_valid),
+        db: AsyncSession = Depends(get_db),
+):
+    return await user_service.patch_user(db, user=user, update_data=update_data)
+
+
+@router.delete(
+    "/users/{user_id}",
+    tags=["Users"],
+    summary="Delete the user",
+    status_code=204)
+async def user_update(
+        user: User = Depends(is_user_id_valid),
+        db: AsyncSession = Depends(get_db),
+):
+    return await user_service.delete_user(db, user=user)
