@@ -6,7 +6,7 @@ from src.database import get_db
 from src.users.models import User
 from src.users.service import user_service
 from src.users.schemas import UserResponseSchema, UserCreateSchema, UserBaseSchema, UserPatchSchema
-from src.users.dependencies import is_user_id_valid
+from src.users.dependencies import is_user_id_valid, PaginationParams
 
 router = APIRouter()
 
@@ -17,8 +17,9 @@ router = APIRouter()
     summary="Get all users",
     response_model=list[UserResponseSchema],
     status_code=200)
-async def get_users(db: AsyncSession = Depends(get_db), skip: int = 0, limit: int = 100):
-    return await user_service.get_users(db, skip, limit)
+async def get_users(db: AsyncSession = Depends(get_db),
+                    pagination: PaginationParams = Depends()):
+    return await user_service.get_users(db, pagination.skip, pagination.limit)
 
 
 @router.get(
@@ -28,7 +29,7 @@ async def get_users(db: AsyncSession = Depends(get_db), skip: int = 0, limit: in
     response_model=UserResponseSchema,
     status_code=200)
 async def get_user_by_id(
-        user: dict = Depends(is_user_id_valid)):
+        user: User = Depends(is_user_id_valid)):
     return user
 
 
@@ -69,7 +70,7 @@ async def user_update(
     summary="PATCH the user",
     response_model=UserResponseSchema,
     status_code=200)
-async def user_update(
+async def user_patch(
         update_data: UserPatchSchema,
         user: User = Depends(is_user_id_valid),
         db: AsyncSession = Depends(get_db),
@@ -82,7 +83,7 @@ async def user_update(
     tags=["Users"],
     summary="Delete the user",
     status_code=204)
-async def user_update(
+async def user_delete(
         user: User = Depends(is_user_id_valid),
         db: AsyncSession = Depends(get_db),
 ):
