@@ -1,4 +1,4 @@
-from typing import Tuple, Sequence
+from typing import Tuple, Sequence, Optional
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,6 +8,15 @@ from src.tickets.models import Ticket
 
 
 class TicketService:
+    async def get_ticket_by_id(self, db: AsyncSession, ticket_id: int) -> Optional[Ticket]:
+        ticket_result = await db.execute(
+            select(Ticket)
+            .where(Ticket.id == ticket_id)
+        )
+
+        return ticket_result.scalar_one_or_none()
+
+
     async def get_tickets(self, db: AsyncSession, pagination: PaginationParams) -> Tuple[Sequence[Ticket], int]:
         count_result = await db.execute(func.count(Ticket.id))
         total = count_result.scalar()
