@@ -18,8 +18,9 @@ router = APIRouter()
     summary="Get all users",
     response_model=PaginatedResponse[UserResponseSchema],
     status_code=200)
-async def get_users(db: AsyncSession = Depends(get_db),
-                    pagination: PaginationParams = Depends()):
+async def get_users(
+        db: AsyncSession = Depends(get_db),
+        pagination: PaginationParams = Depends()):
     users, total = await user_service.get_users(db, pagination)
 
     return PaginatedResponse.create(users, total, pagination)

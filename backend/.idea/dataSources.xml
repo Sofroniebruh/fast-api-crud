@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="ticket-service@localhost [2]" uuid="9252db0c-95fb-4c50-841b-53dcf57ac22a">
+    <data-source source="LOCAL" name="fast-api-crud@localhost" uuid="1a52ea7e-9e79-482f-9f71-d451f3e0b16c">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://localhost:5432/ticket-service</jdbc-url>
+      <jdbc-url>jdbc:postgresql://localhost:5432/fast-api-crud</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>
