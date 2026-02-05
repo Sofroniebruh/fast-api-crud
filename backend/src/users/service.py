@@ -41,6 +41,8 @@ class UserService:
 
     async def get_users(self, db: AsyncSession, pagination: PaginationParams) -> Tuple[Sequence[User], int]:
         count_result = await db.execute(select(func.count(User.id)))
+        # Returns ONE single value from the first row, first column.
+        # Returns a ScalarsResult object that gives you the first column from multiple rows.
         total = count_result.scalar()
 
         users_result = await db.execute(

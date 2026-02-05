@@ -16,7 +16,9 @@ class UserBaseSchema(BaseModel):
 
 class UserPatchSchema(BaseModel):
     username: Optional[str] = Field(None, min_length=3)
-    email: Optional[EmailStr]
+    # If you want the field optional - add None,
+    # without it pydantic treats them as required even with Optional[]
+    email: Optional[EmailStr] = None
 
 
 class UserCreateSchema(UserBaseSchema):
@@ -43,6 +45,5 @@ class UserListResponseSchema(BaseModel):
     total: int
 
     model_config = ConfigDict(from_attributes=True)
-
 
 # Model rebuild moved to avoid import issues - will be handled at startup
