@@ -6,7 +6,7 @@ from src.database import get_db
 from src.pagination import PaginatedResponse, PaginationParams
 from src.tickets.dependencies import is_ticket_id_valid
 from src.tickets.models import Ticket
-from src.tickets.schemas import TicketResponseSchema
+from src.tickets.schemas import TicketResponseSchema, TicketCreateSchema
 from src.tickets.service import ticket_service
 
 router = APIRouter()
@@ -37,3 +37,13 @@ async def get_ticket_by_id(
     return ticket
 
 
+@router.post(
+    "/tickets",
+    tags=["Tickets"],
+    description="Create a new ticket",
+    response_model=TicketResponseSchema,
+    status_code=201)
+async def create_ticket(
+        ticket: TicketCreateSchema,
+        db: AsyncSession = Depends(get_db)):
+    return await ticket_service.create_ticket(db, ticket)
