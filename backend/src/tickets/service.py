@@ -111,6 +111,16 @@ class TicketService:
         update_dict = update_data.model_dump(exclude_unset=True)
         return await self._update_and_save(db, ticket, update_dict)
 
+    async def delete_ticket(self, db: AsyncSession, ticket: Ticket) -> None:
+        try:
+            await db.delete(ticket)
+            await db.commit()
+        except SQLAlchemyError as e:
+            await db.rollback()
+            logger.error(f"Ticket deletion failed: {str(e)}")
+
+            raise HTTPException(500, "Failed to delete ticket")
+
     async def create_tickets_background(
             self,
             name: str,

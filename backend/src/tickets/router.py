@@ -89,3 +89,15 @@ async def patch_ticket(
         db: AsyncSession = Depends(get_db)
 ):
     return await ticket_service.patch_ticket(db, ticket, update_data)
+
+
+@router.delete(
+    "/tickets/{ticket_id}",
+    tags=["Tickets"],
+    description="Delete the ticket",
+    status_code=204)
+async def delete_ticket(
+        ticket: Ticket = Depends(is_ticket_id_valid),
+        db: AsyncSession = Depends(get_db)
+):
+    await ticket_service.delete_ticket(db, ticket)
