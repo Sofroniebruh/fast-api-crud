@@ -5,6 +5,7 @@ from typing import Optional, Tuple
 from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.pagination import PaginationParams
 from src.users.models import User
@@ -34,9 +35,20 @@ class UserService:
 
     async def get_user_by_id(self, db: AsyncSession, user_id: int) -> Optional[User]:
         result = await db.execute(
-            select(User).where(User.id == user_id)
+            select(User)
+            .options(selectinload(User.tickets))
+            .where(User.id == user_id)
         )
 
+        return result.scalar_one_or_none()
+
+    async def get_user_with_tickets(self, db: AsyncSession, user_id: int) -> Optional[User]:
+        """Get user with their associated tickets loaded"""
+        result = await db.execute(
+            select(User)
+            .options(selectinload(User.tickets))
+            .where(User.id == user_id)
+        )
         return result.scalar_one_or_none()
 
     async def get_users(self, db: AsyncSession, pagination: PaginationParams) -> Tuple[Sequence[User], int]:
