@@ -3,14 +3,15 @@ from typing import Tuple, Sequence, Optional
 
 from fastapi import HTTPException
 from sqlalchemy import func, select, insert
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import AsyncSessionLocal
 from src.pagination import PaginationParams
+from src.users.models import User
 from src.utils import chunked
 from src.tickets.models import Ticket
-from src.tickets.schemas import TicketCreateSchema, TicketCreateBulkSchema
+from src.tickets.schemas import TicketCreateSchema, TicketCreateBulkSchema, TicketUpdateSchema, TicketPATCHSchema
 
 logger = logging.getLogger(__name__)
 
@@ -96,6 +97,20 @@ class TicketService:
 
                 raise HTTPException(500, "Failed to create tickets")
 
+    async def update_ticket(self, db: AsyncSession, ticket: Ticket, update_data: TicketUpdateSchema) -> Ticket:
+        if update_data.user_id and not await self._validate_user_id(db, update_data.user_id):
+            raise HTTPException(400, "Invalid user_id")
+
+        update_dict = update_data.model_dump(exclude_unset=False)
+        return await self._update_and_save(db, ticket, update_dict)
+
+    async def patch_ticket(self, db: AsyncSession, ticket: Ticket, update_data: TicketPATCHSchema) -> Ticket:
+        if update_data.user_id and not await self._validate_user_id(db, update_data.user_id):
+            raise HTTPException(400, "Invalid user_id")
+
+        update_dict = update_data.model_dump(exclude_unset=True)
+        return await self._update_and_save(db, ticket, update_dict)
+
     async def create_tickets_background(
             self,
             name: str,
@@ -118,6 +133,28 @@ class TicketService:
                 await db.execute(stmt)
 
             await db.commit()
+
+    async def _validate_user_id(self, db: AsyncSession, user_id: int) -> Optional[User]:
+        user = await db.execute(
+            select(User)
+            .where(User.id == user_id)
+        )
+
+        return user.scalar_one_or_none()
+
+    async def _update_and_save(self, db: AsyncSession, ticket: Ticket, update_data: dict) -> Ticket:
+        for field, value in update_data.items():
+            setattr(ticket, field, value)
+
+        try:
+            db.add(ticket)
+            await db.commit()
+            await db.refresh(ticket)
+
+            return ticket
+        except IntegrityError as e:
+            await db.rollback()
+            raise ValueError(f"Database integrity error: {e}")
 
 
 ticket_service = TicketService()

@@ -13,15 +13,19 @@ class TicketCreateSchema(TicketBaseSchema):
     user_id: Optional[int] = None
 
 
+class TicketUpdateSchema(TicketBaseSchema):
+    user_id: int = Field(ge=1)
+
+
 class TicketCreateBulkSchema(TicketBaseSchema):
     amount: Optional[int] = Field(None, ge=10, le=10000)
 
 
-class TicketUpdateSchema(BaseModel):
+class TicketPATCHSchema(BaseModel):
     name: Optional[str] = None
-    price: Optional[float] = None
+    price: Optional[float] = Field(None, ge=1)
     is_valid: Optional[bool] = None
-    user_id: Optional[int] = None
+    user_id: Optional[int] = Field(None, ge=1)
 
 
 class TicketResponseSchema(TicketBaseSchema):

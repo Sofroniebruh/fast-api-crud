@@ -7,7 +7,7 @@ from src.pagination import PaginatedResponse, PaginationParams
 from src.tickets.dependencies import is_ticket_id_valid
 from src.tickets.models import Ticket
 from src.tickets.schemas import TicketResponseSchema, TicketCreateSchema, TicketBulkResponseSchema, \
-    TicketCreateBulkSchema
+    TicketCreateBulkSchema, TicketUpdateSchema, TicketPATCHSchema
 from src.tickets.service import ticket_service
 
 router = APIRouter()
@@ -61,3 +61,31 @@ async def create_tickets_bulk(
         db: AsyncSession = Depends(get_db)
 ):
     return await ticket_service.create_ticket_bulk(db, bulk_ticket)
+
+
+@router.put(
+    "/tickets/{ticket_id}",
+    tags=["Tickets"],
+    description="Update the ticket",
+    response_model=TicketResponseSchema,
+    status_code=200)
+async def update_ticket(
+        update_data: TicketUpdateSchema,
+        ticket: Ticket = Depends(is_ticket_id_valid),
+        db: AsyncSession = Depends(get_db)
+):
+    return await ticket_service.update_ticket(db, ticket, update_data)
+
+
+@router.patch(
+    "/tickets/{ticket_id}",
+    tags=["Tickets"],
+    description="PATCH the ticket",
+    response_model=TicketResponseSchema,
+    status_code=200)
+async def patch_ticket(
+        update_data: TicketPATCHSchema,
+        ticket: Ticket = Depends(is_ticket_id_valid),
+        db: AsyncSession = Depends(get_db)
+):
+    return await ticket_service.patch_ticket(db, ticket, update_data)
