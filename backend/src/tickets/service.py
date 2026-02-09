@@ -55,10 +55,12 @@ class TicketService:
     async def create_ticket_bulk(self, db: AsyncSession, ticket: TicketCreateBulkSchema) -> dict:
         if ticket.amount > 5000:
             try:
-                await self.create_tickets_background(ticket.name, ticket.amount, ticket.is_valid, ticket.price,
-                                                     ticket.user_id)
+                await self.create_tickets_background(ticket.name, ticket.amount, ticket.is_valid, ticket.price)
 
-                return {"message": "Tickets created successfully"}
+                return {
+                    "success": True,
+                    "tickets_created": ticket.amount,
+                }
             except SQLAlchemyError as e:
                 await db.rollback()
                 logger.error(f"Bulk ticket creation failed: {str(e)}")
@@ -71,7 +73,6 @@ class TicketService:
                         "price": ticket.price,
                         "name": ticket.name,
                         "is_valid": ticket.is_valid,
-                        "user_id": ticket.user_id
                     }
                     for _ in range(ticket.amount)
                 ]
@@ -100,8 +101,7 @@ class TicketService:
             name: str,
             amount: int,
             is_valid: bool,
-            price: float,
-            user_id: Optional[int] = None
+            price: float
     ):
         async with AsyncSessionLocal() as db:
             ticket_records = [
@@ -109,7 +109,6 @@ class TicketService:
                     "price": price,
                     "name": name,
                     "is_valid": is_valid,
-                    "user_id": user_id
                 }
                 for _ in range(amount)
             ]

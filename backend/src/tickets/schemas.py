@@ -12,6 +12,7 @@ class TicketBaseSchema(BaseModel):
 class TicketCreateSchema(TicketBaseSchema):
     user_id: Optional[int] = None
 
+
 class TicketCreateBulkSchema(TicketBaseSchema):
     amount: Optional[int] = Field(None, ge=10, le=10000)
 
@@ -28,6 +29,11 @@ class TicketResponseSchema(TicketBaseSchema):
     user_id: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class TicketBulkResponseSchema(BaseModel):
+    success: bool
+    tickets_created: int
 
 
 class TicketListResponseSchema(BaseModel):

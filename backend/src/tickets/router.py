@@ -6,7 +6,8 @@ from src.database import get_db
 from src.pagination import PaginatedResponse, PaginationParams
 from src.tickets.dependencies import is_ticket_id_valid
 from src.tickets.models import Ticket
-from src.tickets.schemas import TicketResponseSchema, TicketCreateSchema
+from src.tickets.schemas import TicketResponseSchema, TicketCreateSchema, TicketBulkResponseSchema, \
+    TicketCreateBulkSchema
 from src.tickets.service import ticket_service
 
 router = APIRouter()
@@ -47,3 +48,16 @@ async def create_ticket(
         ticket: TicketCreateSchema,
         db: AsyncSession = Depends(get_db)):
     return await ticket_service.create_ticket(db, ticket)
+
+
+@router.post(
+    "/tickets/bulk",
+    tags=["Tickets"],
+    description="Create a new ticket",
+    response_model=TicketBulkResponseSchema,
+    status_code=201)
+async def create_tickets_bulk(
+        bulk_ticket: TicketCreateBulkSchema,
+        db: AsyncSession = Depends(get_db)
+):
+    return await ticket_service.create_ticket_bulk(db, bulk_ticket)
