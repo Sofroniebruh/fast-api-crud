@@ -13,7 +13,6 @@ class Ticket(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     price = Column(Float, nullable=False)
     name = Column(String, nullable=False)
-    amount = Column(Integer, nullable=False)
     is_valid = Column(Boolean, nullable=False, default=True)
     created_at = Column(
         DateTime(timezone=True),

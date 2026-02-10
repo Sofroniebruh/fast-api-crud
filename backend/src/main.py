@@ -5,6 +5,7 @@ from fastapi import FastAPI
 
 from src.database import engine, Base
 from src.users.router import router as user_router
+from src.tickets.router import router as ticket_router
 
 # IMPORTANT: Import order matters for cross-references
 # Import schemas to trigger Pydantic model rebuilding for forward references
@@ -27,6 +28,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Ticketing System", lifespan=lifespan)
 
 app.include_router(user_router)
+app.include_router(ticket_router)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=4000, reload=True)
